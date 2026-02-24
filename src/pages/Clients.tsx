@@ -1,16 +1,18 @@
-import { useEffect } from 'react';
-import { motion} from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useClientStore } from '../stores/clientStore';
-import { Plus, Search, MoreHorizontal, Building2, Mail, Phone, Users } from 'lucide-react';
+import { Plus, Search, Building2, Mail, Phone, Users, Edit2, Trash2 } from 'lucide-react';
 import Alert from '../components/common/Alert';
+import ClientModal from '../components/crm/ClientModal';
+import type { Client } from '../types';
 
-// 1. LAS LEYES DE LA FÍSICA (Animación en cascada muy rápida)
+// 1. LAS LEYES DE LA FÍSICA
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.05 } // Aparecen casi de golpe, pero con un micro-retraso elegante
+    transition: { staggerChildren: 0.05 }
   }
 };
 
@@ -19,7 +21,7 @@ const itemVariants: Variants = {
   visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
 
-// 2. EL PINTOR DE ETIQUETAS (Badges): Decide qué color pintar según la categoría del cliente
+// 2. EL PINTOR DE ETIQUETAS (Badges)
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'VIP': return 'bg-purple-100 text-purple-700 border-purple-200';
@@ -31,24 +33,43 @@ const getCategoryColor = (category: string) => {
 };
 
 export default function Clients() {
-  // 3. CONECTAMOS CON EL ARCHIVERO (Zustand)
-  const { clients, isLoading, error, fetchClients } = useClientStore();
+  // 3. CONEXIÓN CON EL ARCHIVERO
+  const { clients, isLoading, error, fetchClients, deleteClient } = useClientStore();
+  
+  // 4. CONTROLADORES DEL MODAL
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
 
-  // En cuanto el usuario pisa esta habitación, le decimos al archivero que traiga los clientes
   useEffect(() => {
     fetchClients();
   }, []);
 
+  // Función para abrir la ventana de edición
+  const handleEdit = (client: Client) => {
+    setClientToEdit(client);
+    setIsModalOpen(true);
+  };
+
+  // Función para borrar un cliente con confirmación
+  const handleDelete = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este cliente de forma permanente?')) {
+      await deleteClient(id);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-10">
       
-      {/* 4. LA CABECERA (Título y Botón de Añadir) */}
+      {/* LA CABECERA */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Cartera de Clientes</h1>
           <p className="text-sm text-gray-500 mt-1">Gestiona y visualiza todos los contactos de tu negocio.</p>
         </div>
-        <button className="btn-primary flex items-center shadow-lg shadow-primary-500/20 transition-all hover:shadow-primary-500/30">
+        <button 
+          onClick={() => { setClientToEdit(null); setIsModalOpen(true); }}
+          className="btn-primary flex items-center shadow-lg shadow-primary-500/20 transition-all hover:shadow-primary-500/30"
+        >
           <Plus className="w-5 h-5 mr-2" />
           Nuevo Cliente
         </button>
@@ -56,10 +77,10 @@ export default function Clients() {
 
       {error && <Alert type="error" message={error} />}
 
-      {/* 5. EL CONTENEDOR PRINCIPAL (La Tarjeta Blanca) */}
+      {/* EL CONTENEDOR PRINCIPAL */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
         
-        {/* Barra de Búsqueda y Filtros */}
+        {/* Barra de Búsqueda */}
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -71,7 +92,7 @@ export default function Clients() {
           </div>
         </div>
 
-        {/* 6. LA TABLA DE DATOS (Adaptable a móviles con overflow-x-auto) */}
+        {/* LA TABLA DE DATOS */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
@@ -89,8 +110,7 @@ export default function Clients() {
               animate="visible"
               className="divide-y divide-gray-50"
             >
-              {isLoading ? (
-                // Estado de carga (Esqueleto temporal)
+              {isLoading && clients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
                     <div className="flex justify-center items-center space-x-2">
@@ -100,7 +120,6 @@ export default function Clients() {
                   </td>
                 </tr>
               ) : clients.length === 0 ? (
-                // Si la base de datos está vacía
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
@@ -111,12 +130,10 @@ export default function Clients() {
                   </td>
                 </tr>
               ) : (
-                // Si hay clientes, los pintamos uno a uno
                 clients.map((client) => (
                   <motion.tr variants={itemVariants} key={client._id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
-                        {/* Avatar con las iniciales */}
                         <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm shadow-inner">
                           {client.name.charAt(0).toUpperCase()}
                         </div>
@@ -142,16 +159,28 @@ export default function Clients() {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      {/* Aquí usamos el Pintor de Etiquetas que creamos arriba */}
                       <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getCategoryColor(client.category)}`}>
                         {client.category}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {/* Botón de opciones que solo se oscurece al pasar el ratón por la fila */}
-                      <button className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors">
-                        <MoreHorizontal className="w-5 h-5" />
-                      </button>
+                      {/* Botones de Editar y Borrar (se muestran al pasar el ratón) */}
+                      <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => handleEdit(client)}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(client._id)}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </motion.tr>
                 ))
@@ -161,6 +190,12 @@ export default function Clients() {
         </div>
       </div>
 
+      {/* EL MODAL DE FORMULARIO */}
+      <ClientModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        clientToEdit={clientToEdit}
+      />
     </div>
   );
 }
