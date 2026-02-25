@@ -3,7 +3,8 @@ import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
-import Clients from './pages/Clients'; // 👈 1. Importamos la nueva pantalla
+import Clients from './pages/Clients';
+import Tasks from './pages/Tasks'; // 👈 Importamos la pantalla de tareas
 
 export default function App() {
   return (
@@ -14,8 +15,8 @@ export default function App() {
         
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          {/* 👇 2. Enganchamos la pantalla a la ruta /clients */}
           <Route path="/clients" element={<Clients />} />
+          <Route path="/tasks" element={<Tasks />} /> {/* 👈 Añadimos la ruta */}
         </Route>
         
         <Route path="/" element={<Navigate to="/login" replace />} />
