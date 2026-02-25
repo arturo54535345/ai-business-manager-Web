@@ -6,24 +6,29 @@ import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import Tasks from './pages/Tasks';
 import Finance from './pages/Finance';
-import AiChat from './pages/AiChat'; // 👈 1. Importamos la pantalla del Chat
+import AiChat from './pages/AiChat';
+import Landing from './pages/Landing'; // 👈 1. Importamos la Landing
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Rutas Públicas */}
+        <Route path="/" element={<Landing />} /> {/* 👈 2. La ruta principal ahora es la Landing */}
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         
+        {/* Rutas Privadas */}
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/finance" element={<Finance />} />
-          <Route path="/ai-chat" element={<AiChat />} /> {/* 👈 2. Añadimos la ruta que hace match con el Sidebar */}
+          <Route path="/ai-chat" element={<AiChat />} />
         </Route>
         
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Si escriben una ruta que no existe, los mandamos a la Landing */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
