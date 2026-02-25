@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 1. Importamos la brújula para viajar
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
 import { useClientStore } from '../stores/clientStore';
@@ -7,13 +8,9 @@ import Alert from '../components/common/Alert';
 import ClientModal from '../components/crm/ClientModal';
 import type { Client } from '../types';
 
-// 1. LAS LEYES DE LA FÍSICA
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 }
-  }
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
 };
 
 const itemVariants: Variants = {
@@ -21,7 +18,6 @@ const itemVariants: Variants = {
   visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
 };
 
-// 2. EL PINTOR DE ETIQUETAS (Badges)
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'VIP': return 'bg-purple-100 text-purple-700 border-purple-200';
@@ -33,10 +29,8 @@ const getCategoryColor = (category: string) => {
 };
 
 export default function Clients() {
-  // 3. CONEXIÓN CON EL ARCHIVERO
+  const navigate = useNavigate(); // 👈 2. Activamos la brújula
   const { clients, isLoading, error, fetchClients, deleteClient } = useClientStore();
-  
-  // 4. CONTROLADORES DEL MODAL
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [clientToEdit, setClientToEdit] = useState<Client | null>(null);
 
@@ -44,13 +38,11 @@ export default function Clients() {
     fetchClients();
   }, []);
 
-  // Función para abrir la ventana de edición
   const handleEdit = (client: Client) => {
     setClientToEdit(client);
     setIsModalOpen(true);
   };
 
-  // Función para borrar un cliente con confirmación
   const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este cliente de forma permanente?')) {
       await deleteClient(id);
@@ -59,8 +51,6 @@ export default function Clients() {
 
   return (
     <div className="space-y-6 pb-10">
-      
-      {/* LA CABECERA */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Cartera de Clientes</h1>
@@ -70,29 +60,23 @@ export default function Clients() {
           onClick={() => { setClientToEdit(null); setIsModalOpen(true); }}
           className="btn-primary flex items-center shadow-lg shadow-primary-500/20 transition-all hover:shadow-primary-500/30"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Nuevo Cliente
+          <Plus className="w-5 h-5 mr-2" /> Nuevo Cliente
         </button>
       </div>
 
       {error && <Alert type="error" message={error} />}
 
-      {/* EL CONTENEDOR PRINCIPAL */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-        
-        {/* Barra de Búsqueda */}
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
-              type="text" 
-              placeholder="Buscar por nombre, empresa o email..." 
+              type="text" placeholder="Buscar por nombre, empresa o email..." 
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all bg-white"
             />
           </div>
         </div>
 
-        {/* LA TABLA DE DATOS */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100">
@@ -103,13 +87,7 @@ export default function Clients() {
                 <th className="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            
-            <motion.tbody 
-              variants={containerVariants} 
-              initial="hidden" 
-              animate="visible"
-              className="divide-y divide-gray-50"
-            >
+            <motion.tbody variants={containerVariants} initial="hidden" animate="visible" className="divide-y divide-gray-50">
               {isLoading && clients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-400">
@@ -122,16 +100,20 @@ export default function Clients() {
               ) : clients.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
-                      <Users className="w-6 h-6 text-gray-400" />
-                    </div>
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4"><Users className="w-6 h-6 text-gray-400" /></div>
                     <h3 className="text-base font-medium text-gray-900 mb-1">No hay clientes todavía</h3>
                     <p className="text-gray-500">Comienza añadiendo tu primer cliente a la cartera.</p>
                   </td>
                 </tr>
               ) : (
                 clients.map((client) => (
-                  <motion.tr variants={itemVariants} key={client._id} className="hover:bg-gray-50/80 transition-colors group">
+                  <motion.tr 
+                    variants={itemVariants} 
+                    key={client._id} 
+                    // 👇 3. AL HACER CLIC EN LA FILA, VIAJAMOS AL PERFIL. Pongo cursor-pointer para que salga la manita del ratón.
+                    onClick={() => navigate(`/clients/${client._id}`)} 
+                    className="hover:bg-gray-50/80 transition-colors group cursor-pointer"
+                  >
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm shadow-inner">
@@ -139,44 +121,31 @@ export default function Clients() {
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">{client.name}</p>
-                          <p className="text-xs text-gray-500 flex items-center mt-0.5">
-                            <Building2 className="w-3 h-3 mr-1" />
-                            {client.companyName || 'Sin empresa'}
-                          </p>
+                          <p className="text-xs text-gray-500 flex items-center mt-0.5"><Building2 className="w-3 h-3 mr-1" />{client.companyName || 'Sin empresa'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col space-y-1">
-                        <span className="text-gray-600 flex items-center">
-                          <Mail className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                          {client.email || '—'}
-                        </span>
-                        <span className="text-gray-500 text-xs flex items-center">
-                          <Phone className="w-3.5 h-3.5 mr-1.5 text-gray-400" />
-                          {client.phone || '—'}
-                        </span>
+                        <span className="text-gray-600 flex items-center"><Mail className="w-3.5 h-3.5 mr-1.5 text-gray-400" />{client.email || '—'}</span>
+                        <span className="text-gray-500 text-xs flex items-center"><Phone className="w-3.5 h-3.5 mr-1.5 text-gray-400" />{client.phone || '—'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getCategoryColor(client.category)}`}>
-                        {client.category}
-                      </span>
+                      <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${getCategoryColor(client.category)}`}>{client.category}</span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      {/* Botones de Editar y Borrar (se muestran al pasar el ratón) */}
                       <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {/* 👇 4. TRUCO DE LA BURBUJA: e.stopPropagation() frena el clic para que no active la fila */}
                         <button 
-                          onClick={() => handleEdit(client)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Editar"
+                          onClick={(e) => { e.stopPropagation(); handleEdit(client); }}
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(client._id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Eliminar"
+                          onClick={(e) => { e.stopPropagation(); handleDelete(client._id); }}
+                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -190,12 +159,7 @@ export default function Clients() {
         </div>
       </div>
 
-      {/* EL MODAL DE FORMULARIO */}
-      <ClientModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        clientToEdit={clientToEdit}
-      />
+      <ClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} clientToEdit={clientToEdit} />
     </div>
   );
 }
