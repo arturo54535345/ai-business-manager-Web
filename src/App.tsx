@@ -6,9 +6,10 @@ import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import ClientDetails from './pages/ClientDetails';
 import Tasks from './pages/Tasks';
-import TaskDetails from './pages/TaskDetails'; // 👈 1. IMPORTAMOS TASK DETAILS
+import TaskDetails from './pages/TaskDetails';
 import Finance from './pages/Finance';
 import AiChat from './pages/AiChat';
+import Settings from './pages/Settings'; // 👈 1. IMPORTAMOS AJUSTES
 import Landing from './pages/Landing';
 
 export default function App() {
@@ -30,11 +31,14 @@ export default function App() {
           
           {/* Módulo de Tareas */}
           <Route path="/tasks" element={<Tasks />} />
-          <Route path="/tasks/:id" element={<TaskDetails />} /> {/* 👈 2. RUTA DINÁMICA DE TAREAS */}
+          <Route path="/tasks/:id" element={<TaskDetails />} />
           
           {/* Otros Módulos */}
           <Route path="/finance" element={<Finance />} />
           <Route path="/ai-chat" element={<AiChat />} />
+          
+          {/* 👇 2. AÑADIMOS LA RUTA DE AJUSTES */}
+          <Route path="/settings" element={<Settings />} />
         </Route>
         
         {/* Redirección por defecto */}
