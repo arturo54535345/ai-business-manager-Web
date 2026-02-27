@@ -4,28 +4,21 @@ import { useAuthStore } from '../../stores/authStore';
 import Alert from '../common/Alert';
 import { motion } from 'framer-motion';
 import type { Variants } from 'framer-motion';
+import { Bot, ArrowRight, Mail, Lock } from 'lucide-react';
 
-// 1. LAS LEYES DE LA FÍSICA (La Coreografía)
+// 1. LAS LEYES DE LA FÍSICA (Animaciones Mantequilla)
 const containerVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: "easeOut",
-      staggerChildren: 0.1, 
-      delayChildren: 0.2,   
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
-// 👇 CORREGIDO: "itemVariants" con 's' minúscula
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
-    opacity: 1, 
-    y: 0,
+    opacity: 1, y: 0,
     transition: { type: "spring", stiffness: 300, damping: 24 } 
   },
 };
@@ -46,87 +39,92 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 overflow-hidden relative">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F7F5] relative overflow-hidden px-4">
       
-      {/* Círculos decorativos de fondo (Estilo Glassmorphism muy sutil) */}
-      <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      {/* Fondo Premium: Cuadrícula de puntos (Dot Grid) */}
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-60"></div>
+      
+      {/* Brillo sutil de fondo */}
+      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-neutral-200/50 rounded-full mix-blend-multiply filter blur-[100px] opacity-50 translate-x-1/3 -translate-y-1/3"></div>
 
-      {/* El Escenario Principal */}
+      {/* Escenario Principal */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/20 w-full max-w-md relative z-10"
+        className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-neutral-200/60 w-full max-w-md relative z-10"
       >
-        <motion.div variants={itemVariants} className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100 text-primary-600 mb-4 shadow-inner">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">AI Business</h1>
-          <p className="text-gray-500 font-medium">Tu socio inteligente de negocios</p>
+        <motion.div variants={itemVariants} className="text-center mb-10">
+          <motion.div 
+            initial={{ scale: 0.5, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-900 text-white mb-6 shadow-lg"
+          >
+            <Bot className="w-8 h-8" />
+          </motion.div>
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">Bienvenido de nuevo</h1>
+          <p className="text-neutral-500 font-medium">Inicia sesión en tu espacio de trabajo</p>
         </motion.div>
 
         {error && (
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="mb-6">
             <Alert type="error" message={error} />
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <motion.div variants={itemVariants}>
-            <label className="label text-gray-700">Email corporativo</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="input-field bg-white/50 focus:bg-white transition-all duration-300"
-              required
-              placeholder="tu@empresa.com"
-            />
+            <label className="block text-sm font-semibold text-neutral-700 mb-2 pl-1">Email corporativo</label>
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <input
+                type="email" required
+                value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-900 font-medium focus:ring-2 focus:ring-neutral-900 focus:bg-white transition-all outline-none"
+                placeholder="tu@empresa.com"
+              />
+            </div>
           </motion.div>
 
           <motion.div variants={itemVariants}>
-            <label className="label text-gray-700">Contraseña</label>
-            <input
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="input-field bg-white/50 focus:bg-white transition-all duration-300"
-              required
-              placeholder="••••••••"
-            />
+            <div className="flex items-center justify-between mb-2 px-1">
+              <label className="text-sm font-semibold text-neutral-700">Contraseña</label>
+              <Link to="/forgot-password" className="text-xs font-semibold text-neutral-500 hover:text-neutral-900 transition-colors">¿Olvidada?</Link>
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+              <input
+                type="password" required
+                value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                className="w-full pl-12 pr-4 py-3.5 bg-neutral-50 border border-neutral-200 rounded-xl text-neutral-900 font-medium focus:ring-2 focus:ring-neutral-900 focus:bg-white transition-all outline-none"
+                placeholder="••••••••"
+              />
+            </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="pt-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 px-4 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors shadow-lg shadow-gray-900/20 disabled:opacity-50 flex items-center justify-center space-x-2"
+          <motion.div variants={itemVariants} className="pt-4">
+            <button
+              type="submit" disabled={isLoading}
+              className="w-full py-4 px-4 bg-neutral-900 text-white rounded-xl font-bold hover:bg-neutral-800 transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-50 flex items-center justify-center space-x-2 group"
             >
               {isLoading ? (
                 <span className="flex items-center space-x-2">
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   <span>Verificando...</span>
                 </span>
               ) : (
-                <span>Acceder al Panel</span>
+                <>
+                  <span>Acceder al Panel</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
               )}
-            </motion.button>
+            </button>
           </motion.div>
         </form>
 
-        <motion.p variants={itemVariants} className="text-center text-sm text-gray-500 mt-8">
-          ¿No tienes acceso?{' '}
-          <Link to="/register" className="text-primary-600 hover:text-primary-700 font-semibold hover:underline decoration-2 underline-offset-4 transition-all">
-            Solicita una cuenta
+        <motion.p variants={itemVariants} className="text-center text-sm text-neutral-500 mt-8 font-medium">
+          ¿No tienes una cuenta?{' '}
+          <Link to="/register" className="text-neutral-900 font-bold hover:underline decoration-2 underline-offset-4 transition-all">
+            Solicita acceso
           </Link>
         </motion.p>
       </motion.div>

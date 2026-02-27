@@ -34,6 +34,7 @@ export interface Task {
     description?: string;
     specifications?: string;
     dueDate?: string;
+    dueTime?: string,
     status: TaskStatus;
     priority: TaskPriority;
     category: TaskCategory;

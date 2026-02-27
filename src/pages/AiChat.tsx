@@ -1,168 +1,177 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Bot, Send, User, Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bot, ArrowUp, User, Sparkles, Command } from 'lucide-react';
 import { aiService } from '../services/ai.service';
 import { useAuthStore } from '../stores/authStore';
 
-//como sera un mensaje
 interface Message {
-    id: string;
-    role: 'user' | 'ai';
-    content: string;
+  id: string;
+  role: 'user' | 'ai';
+  content: string;
 }
 
-export default function AiChat(){
-    const {user} = useAuthStore();
+export default function AiChat() {
+  const { user } = useAuthStore();
 
-    //enviare siempre un mensaje de bienvenida
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            role: 'ai',
-            content: `¡Hola ${user?.name}! Soy tu AI Business Manager. Estoy analizando tus finanzas, clientes y tareas. ¿En qué puedo ayudarte a mejorar tu negocio hoy?`
-        }
-    ]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      role: 'ai',
+      content: `¡Hola, ${user?.name?.split(' ')[0] || 'Líder'}! Soy tu Socio Estratégico IA.\n\nTengo acceso a tu **Directorio de Clientes**, tus **Tareas Activas** y tu **Balance Financiero**.\n\n¿En qué nos enfocamos hoy? Puedo ayudarte a redactar un correo para un cliente, analizar si llegaremos a la meta de facturación, o priorizar tu agenda.`
+    }
+  ]);
 
-    const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    //se hara scroll automatico a mediada que la conversacion aumente 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
-    };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
-    //cada que cambian los mensajes bajo la pantalla
-    useEffect(()=>{
-        scrollToBottom();
-    },[messages, isLoading]);
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!input.trim() || isLoading) return;
 
-    const handleSubmit = async (e: React.FormEvent) =>{
-        e.preventDefault();
-        if(!input.trim() || isLoading) return;
+    const userMessage = input.trim();
+    setInput('');
 
-        const userMessage = input.trim();
-        setInput('');//se limpiara la caja 
+    const newUserMessage: Message = { id: Date.now().toString(), role: 'user', content: userMessage };
+    setMessages((prev) => [...prev, newUserMessage]);
+    setIsLoading(true);
 
-        //añado el mensaje del usuario a la pantalla
-        const newUserMessage: Message = {id: Date.now().toString(), role: 'user', content: userMessage };
-        setMessages((prev)=> [...prev, newUserMessage]);
+    try {
+      const aiResponseText = await aiService.chat(userMessage);
+      const newAiMessage: Message = { id: (Date.now() + 1).toString(), role: 'ai', content: aiResponseText };
+      setMessages((prev) => [...prev, newAiMessage]);
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(), role: 'ai',
+        content: 'Lo siento, he perdido la conexión con el servidor. ¿Podrías intentarlo de nuevo en unos segundos?'
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        //enciendo el estado Pensando...
-        setIsLoading(true);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
 
-        try{
-            //hablo con el back
-            const aiResponseText = await aiService.chat(userMessage);
-
-            //añado la respuesta de la ia a la pantalla
-            const newAiMessage: Message = {id: (Date.now() +1).toString(), role: 'ai', content: aiResponseText};
-            setMessages((prev)=>[...prev, newAiMessage]);
-        }catch(error){
-            const errorMessage: Message ={
-                id: (Date.now() +1).toString(),
-                role: 'ai',
-                content: 'Lo siente, he tenido un problema de conexion al procesar tu solicitud. ¿Podrías intentarlo de nuevo?'
-            };
-            setMessages((prev)=>[...prev, errorMessage]);
-        }finally{
-            setIsLoading(false);
-        }
-    };
-    
-        return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto">
+  return (
+    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden relative">
       
-      {/* Cabecera del Chat */}
-      <div className="bg-white rounded-t-2xl border border-gray-100 p-4 sm:p-6 shadow-sm flex items-center justify-between z-10 relative">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center shadow-inner">
-            <Bot className="w-6 h-6 text-white" />
+      {/* CABECERA MINIMALISTA */}
+      <div className="flex items-center justify-between p-5 border-b border-neutral-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-sm">
+            <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center">
-              Socio Estratégico IA <Sparkles className="w-4 h-4 text-yellow-500 ml-2" />
+            <h1 className="text-base font-bold text-neutral-900 tracking-tight flex items-center">
+              AI Manager
             </h1>
-            <p className="text-sm text-green-600 font-medium flex items-center">
-              <span className="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></span>
-              En línea y listo para analizar
+            <p className="text-xs text-neutral-500 font-medium flex items-center mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+              Conectado a tu espacio de trabajo
             </p>
           </div>
         </div>
+        <div className="px-3 py-1.5 bg-neutral-50 rounded-lg border border-neutral-200 flex items-center text-xs font-semibold text-neutral-600">
+          <Command className="w-3.5 h-3.5 mr-1" /> Contexto Activo
+        </div>
       </div>
 
-      {/* Área de Mensajes (Donde ocurre la magia) */}
-      <div className="flex-1 bg-gray-50/50 border-x border-gray-100 overflow-y-auto p-4 sm:p-6 space-y-6">
+      {/* ÁREA DE MENSAJES (Estilo Documento) */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth bg-neutral-50/30">
         {messages.map((msg) => (
           <motion.div 
             key={msg.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            <div className={`flex items-end space-x-2 max-w-[85%] sm:max-w-[75%] ${msg.role === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'}`}>
+            <div className={`flex max-w-[85%] sm:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               
-              {/* Avatar pequeñito */}
-              <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-gray-200 text-gray-600' : 'bg-primary-100 text-primary-600'}`}>
-                {msg.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+              {/* Avatar IA (Solo visible cuando habla la IA) */}
+              {msg.role === 'ai' && (
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center mr-4 mt-1 shadow-sm">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+              )}
+
+              {/* Contenido del Mensaje */}
+              <div className={`text-base leading-relaxed ${
+                msg.role === 'user' 
+                  ? 'bg-neutral-100 text-neutral-900 px-5 py-3 rounded-2xl font-medium' 
+                  : 'text-neutral-700 pt-1.5' // La IA no tiene "burbuja", parece texto plano
+              }`}>
+                {msg.role === 'ai' ? (
+                  // Renderizado especial para la IA (Negritas simuladas, etc)
+                  <div className="whitespace-pre-wrap font-light tracking-wide" dangerouslySetInnerHTML={{ 
+                    __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-neutral-900">$1</strong>') 
+                  }} />
+                ) : (
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                )}
               </div>
 
-              {/* Burbuja del Mensaje */}
-              <div className={`px-5 py-3.5 rounded-2xl shadow-sm text-sm sm:text-base ${
-                msg.role === 'user' 
-                  ? 'bg-gray-900 text-white rounded-br-sm' 
-                  : 'bg-white text-gray-800 border border-gray-100 rounded-bl-sm'
-              }`}>
-                {/* Usamos whitespace-pre-wrap para que respete los saltos de línea de la IA */}
-                <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-              </div>
             </div>
           </motion.div>
         ))}
 
-        {/* Indicador de "Escribiendo..." elegante */}
-        {isLoading && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-start">
-            <div className="flex items-end space-x-2">
-              <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center">
-                <Bot className="w-4 h-4" />
+        {/* Indicador de "Pensando..." estilo ChatGPT */}
+        <AnimatePresence>
+          {isLoading && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex justify-start">
+              <div className="flex max-w-[85%] flex-row">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center mr-4 mt-1 shadow-sm">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+                <div className="pt-3 flex items-center space-x-1.5">
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
               </div>
-              <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm flex items-center space-x-1.5">
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        <div ref={messagesEndRef} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* Caja de Texto (Input) */}
-      <div className="bg-white rounded-b-2xl border border-gray-100 p-4 shadow-sm">
-        <form onSubmit={handleSubmit} className="relative flex items-center">
-          <input
-            type="text"
+      {/* ZONA DE INPUT FLOATANTE */}
+      <div className="p-4 sm:p-6 bg-white border-t border-neutral-100">
+        <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-end shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-2xl border border-neutral-200 bg-neutral-50/50 focus-within:bg-white focus-within:border-neutral-400 focus-within:ring-4 focus-within:ring-neutral-100 transition-all">
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             disabled={isLoading}
-            placeholder="Pregúntame sobre tus finanzas, cómo priorizar tareas o redactar correos..."
-            className="w-full pl-6 pr-14 py-4 bg-gray-50 border border-gray-200 rounded-xl text-sm sm:text-base focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all focus:bg-white disabled:opacity-50"
+            placeholder="Escribe tu consulta aquí... (Shift + Enter para salto de línea)"
+            className="w-full pl-5 pr-14 py-4 bg-transparent text-neutral-900 text-base placeholder-neutral-400 resize-none outline-none max-h-32 min-h-[56px]"
+            rows={input.split('\n').length > 1 ? Math.min(input.split('\n').length, 5) : 1}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 p-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 transition-colors shadow-md shadow-primary-500/20"
+            className="absolute right-2 bottom-2 p-2 bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 disabled:opacity-30 disabled:bg-neutral-900 transition-all flex items-center justify-center"
           >
-            <Send className="w-5 h-5" />
+            <ArrowUp className="w-5 h-5" strokeWidth={3} />
           </button>
         </form>
-        <p className="text-center text-xs text-gray-400 mt-3 font-medium">
-          La IA tiene contexto sobre tus clientes, tareas y finanzas actuales.
-        </p>
+        <div className="text-center mt-3 flex justify-center space-x-4">
+           <p className="text-[11px] font-medium text-neutral-400">AI Business Manager puede cometer errores. Verifica la información importante.</p>
+        </div>
       </div>
 
     </div>
-    )
+  );
 }

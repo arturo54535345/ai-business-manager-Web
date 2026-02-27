@@ -25,13 +25,13 @@ export const authService = {
         return response.data;
     },
     async updatePreferences(preferences: Partial<User['preferences']>): Promise<User> {
-        //llamo a la ruta exacta del back
-        const response = await api.put<User>('/auth/preferences',{preferences});
+        // 👇 SOLUCIÓN: Quitamos las llaves {} que envolvían a 'preferences'
+        // Así enviamos los datos puros y el Backend los entiende a la primera.
+        const response = await api.put<User>('/auth/preferences', preferences);
         return response.data;
     },
 
     logout(){
         localStorage.removeItem('auth_token');
     },
-
 };
