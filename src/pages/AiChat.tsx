@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, ArrowUp, User, Sparkles, Command } from 'lucide-react';
+import { Bot, ArrowUp, Sparkles, Command } from 'lucide-react';
 import { aiService } from '../services/ai.service';
 import { useAuthStore } from '../stores/authStore';
 
@@ -67,31 +67,31 @@ export default function AiChat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white rounded-[2rem] border border-neutral-200/60 shadow-sm overflow-hidden relative">
+    <div className="flex flex-col h-[calc(100vh-6rem)] max-w-4xl mx-auto bg-white dark:bg-[#121212] rounded-[2rem] border border-neutral-200/60 dark:border-neutral-800/60 shadow-sm overflow-hidden relative transition-colors duration-300">
       
       {/* CABECERA MINIMALISTA */}
-      <div className="flex items-center justify-between p-5 border-b border-neutral-100 bg-white/80 backdrop-blur-md sticky top-0 z-10">
+      <div className="flex items-center justify-between p-5 border-b border-neutral-100 dark:border-neutral-800 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md sticky top-0 z-10 transition-colors">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-neutral-900 flex items-center justify-center shadow-sm">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center shadow-sm transition-colors">
+            <Sparkles className="w-5 h-5 text-white dark:text-neutral-900" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-neutral-900 tracking-tight flex items-center">
+            <h1 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight flex items-center transition-colors">
               AI Manager
             </h1>
-            <p className="text-xs text-neutral-500 font-medium flex items-center mt-0.5">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium flex items-center mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
               Conectado a tu espacio de trabajo
             </p>
           </div>
         </div>
-        <div className="px-3 py-1.5 bg-neutral-50 rounded-lg border border-neutral-200 flex items-center text-xs font-semibold text-neutral-600">
+        <div className="px-3 py-1.5 bg-neutral-50 dark:bg-neutral-800/50 rounded-lg border border-neutral-200 dark:border-neutral-700 flex items-center text-xs font-semibold text-neutral-600 dark:text-neutral-400 transition-colors">
           <Command className="w-3.5 h-3.5 mr-1" /> Contexto Activo
         </div>
       </div>
 
-      {/* ÁREA DE MENSAJES (Estilo Documento) */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth bg-neutral-50/30">
+      {/* ÁREA DE MENSAJES */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 scroll-smooth bg-neutral-50/30 dark:bg-[#0a0a0a]/50 transition-colors">
         {messages.map((msg) => (
           <motion.div 
             key={msg.id}
@@ -100,23 +100,20 @@ export default function AiChat() {
           >
             <div className={`flex max-w-[85%] sm:max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
               
-              {/* Avatar IA (Solo visible cuando habla la IA) */}
               {msg.role === 'ai' && (
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center mr-4 mt-1 shadow-sm">
-                  <Bot className="w-4 h-4 text-white" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center mr-4 mt-1 shadow-sm transition-colors">
+                  <Bot className="w-4 h-4 text-white dark:text-neutral-900" />
                 </div>
               )}
 
-              {/* Contenido del Mensaje */}
               <div className={`text-base leading-relaxed ${
                 msg.role === 'user' 
-                  ? 'bg-neutral-100 text-neutral-900 px-5 py-3 rounded-2xl font-medium' 
-                  : 'text-neutral-700 pt-1.5' // La IA no tiene "burbuja", parece texto plano
+                  ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white px-5 py-3 rounded-2xl font-medium transition-colors' 
+                  : 'text-neutral-700 dark:text-neutral-300 pt-1.5 transition-colors'
               }`}>
                 {msg.role === 'ai' ? (
-                  // Renderizado especial para la IA (Negritas simuladas, etc)
                   <div className="whitespace-pre-wrap font-light tracking-wide" dangerouslySetInnerHTML={{ 
-                    __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-neutral-900">$1</strong>') 
+                    __html: msg.content.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-neutral-900 dark:text-white">$1</strong>') 
                   }} />
                 ) : (
                   <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -127,18 +124,18 @@ export default function AiChat() {
           </motion.div>
         ))}
 
-        {/* Indicador de "Pensando..." estilo ChatGPT */}
+        {/* Indicador de Pensando */}
         <AnimatePresence>
           {isLoading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex justify-start">
               <div className="flex max-w-[85%] flex-row">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center mr-4 mt-1 shadow-sm">
-                  <Bot className="w-4 h-4 text-white" />
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-900 dark:bg-neutral-100 flex items-center justify-center mr-4 mt-1 shadow-sm transition-colors">
+                  <Bot className="w-4 h-4 text-white dark:text-neutral-900" />
                 </div>
                 <div className="pt-3 flex items-center space-x-1.5">
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-1.5 h-1.5 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-1.5 h-1.5 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                 </div>
               </div>
             </motion.div>
@@ -147,28 +144,28 @@ export default function AiChat() {
         <div ref={messagesEndRef} className="h-4" />
       </div>
 
-      {/* ZONA DE INPUT FLOATANTE */}
-      <div className="p-4 sm:p-6 bg-white border-t border-neutral-100">
-        <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-end shadow-[0_2px_12px_rgba(0,0,0,0.04)] rounded-2xl border border-neutral-200 bg-neutral-50/50 focus-within:bg-white focus-within:border-neutral-400 focus-within:ring-4 focus-within:ring-neutral-100 transition-all">
+      {/* INPUT FLOTANTE */}
+      <div className="p-4 sm:p-6 bg-white dark:bg-[#121212] border-t border-neutral-100 dark:border-neutral-800 transition-colors">
+        <form onSubmit={handleSubmit} className="relative max-w-3xl mx-auto flex items-end shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-none rounded-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-[#1a1a1a] focus-within:bg-white dark:focus-within:bg-[#222] focus-within:border-neutral-400 dark:focus-within:border-neutral-500 transition-all">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
             placeholder="Escribe tu consulta aquí... (Shift + Enter para salto de línea)"
-            className="w-full pl-5 pr-14 py-4 bg-transparent text-neutral-900 text-base placeholder-neutral-400 resize-none outline-none max-h-32 min-h-[56px]"
+            className="w-full pl-5 pr-14 py-4 bg-transparent text-neutral-900 dark:text-white text-base placeholder-neutral-400 dark:placeholder-neutral-500 resize-none outline-none max-h-32 min-h-[56px]"
             rows={input.split('\n').length > 1 ? Math.min(input.split('\n').length, 5) : 1}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 bottom-2 p-2 bg-neutral-900 text-white rounded-xl hover:bg-neutral-800 disabled:opacity-30 disabled:bg-neutral-900 transition-all flex items-center justify-center"
+            className="absolute right-2 bottom-2 p-2 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-200 disabled:opacity-30 transition-all flex items-center justify-center"
           >
             <ArrowUp className="w-5 h-5" strokeWidth={3} />
           </button>
         </form>
         <div className="text-center mt-3 flex justify-center space-x-4">
-           <p className="text-[11px] font-medium text-neutral-400">AI Business Manager puede cometer errores. Verifica la información importante.</p>
+           <p className="text-[11px] font-medium text-neutral-400 dark:text-neutral-500">AI Business Manager puede cometer errores. Verifica la información importante.</p>
         </div>
       </div>
 
